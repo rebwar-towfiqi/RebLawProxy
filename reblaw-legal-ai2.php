@@ -27,7 +27,7 @@ if ( ! defined( 'REBLAW_LAW_API_URL' ) ) {
  * Expected: POST JSON { messages:[...], meta:{...} } -> { success:true, answer:"..." }
  */
 if ( ! defined( 'REBLAW_AI_PROXY_URL' ) ) {
-    define( 'REBLAW_AI_PROXY_URL', 'https://YOUR-AI-PROXY-URL-HERE/api/ask' );
+    define( 'REBLAW_AI_PROXY_URL', 'https://https://reblawproxy-production.up.railway.app/ask' );
 }
 
 /**
