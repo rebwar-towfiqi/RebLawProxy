@@ -170,15 +170,22 @@ function reblaw_legal_ai_shortcode( $atts = [] ) {
     if ( ! $has_access ) {
         ?>
         <div style="max-width:720px;margin:28px auto;padding:22px;border-radius:14px;background:linear-gradient(135deg,#0b1220,#111827);color:#e5e7eb;border:1px solid rgba(148,163,184,.25);box-shadow:0 18px 40px rgba(2,6,23,.25);direction:rtl;text-align:right;">
-            <div style="font-weight:900;color:#fca5a5;margin-bottom:10px;font-size:16px;">
-                🔒 دسترسی محدود است
+            <div style="font-weight:900;color:#fca5a5;margin:0 0 10px;font-size:16px;display:flex;align-items:center;gap:8px;">
+                <span style="font-size:16px">🔒</span> دسترسی محدود است
             </div>
-            <p style="font-size:13px;line-height:2;">
-                برای استفاده از دستیار حقوقی هوشمند، لازم است اشتراک مربوطه را تهیه کرده باشید.
+
+            <p style="margin:0 0 10px;font-size:13px;line-height:2;">
+                برای استفاده از دستیار حقوقی هوشمند در این صفحه، باید اشتراک مربوطه را خریداری کرده باشید (یا دسترسی دستی برای شما فعال شده باشد).
             </p>
-            <p style="margin-top:10px;font-size:13px;">
-                پشتیبانی:
-                <a href="<?php echo esc_url( REBLAW_BOT_LINK ); ?>" target="_blank" style="color:#22c55e;font-weight:900;">
+
+            <ul style="margin:0;padding:0 18px 0 0;line-height:2;font-size:13px;">
+                <li>اگر خرید را انجام داده‌اید، لطفاً مطمئن شوید با همان حسابی وارد شده‌اید که خرید با آن ثبت شده است.</li>
+                <li>اگر پرداخت شما دستی است، پس از تأیید، دسترسی برای حساب شما فعال می‌شود.</li>
+            </ul>
+
+            <p style="margin:10px 0 0;font-size:13px;">
+                اگر نیاز به پشتیبانی دارید:
+                <a href="<?php echo esc_url( REBLAW_BOT_LINK ); ?>" target="_blank" rel="noopener" style="color:#22c55e;text-decoration:none;font-weight:900;">
                     @RebLCBot
                 </a>
             </p>
@@ -190,132 +197,97 @@ function reblaw_legal_ai_shortcode( $atts = [] ) {
 
     <div id="reblaw-ai-box"
          data-post-id="<?php echo esc_attr( $post_id ); ?>"
-         style="max-width:720px;margin:28px auto;padding:24px;border-radius:14px;background:#020824;color:#fff;direction:rtl;text-align:right;border:1px solid rgba(148,163,184,.18);">
-
-        <h3 style="margin-bottom:14px;font-size:18px;font-weight:900;color:#22c55e;">
+         style="max-width:720px;margin:28px auto;padding:24px;border-radius:14px;background:#020824;color:#fff;box-shadow:0 0 25px rgba(0,0,0,0.45);direction:rtl;text-align:right;border:1px solid rgba(148,163,184,.18);">
+        <h3 style="margin:0 0 14px;font-size:18px;font-weight:900;color:#22c55e;">
             دستیار حقوقی هوشمند – RebLaw AI
         </h3>
 
         <textarea id="reblaw-ai-question"
-                  style="width:100%;min-height:140px;border-radius:10px;border:1px solid #1b2745;background:#050c1b;color:#fff;padding:12px;font-size:14px;resize:vertical;"
+                  style="width:100%;min-height:140px;border-radius:10px;border:1px solid #1b2745;background:#050c1b;color:#fff;padding:12px 12px;font-size:14px;resize:vertical;outline:none;"
                   placeholder="سؤال حقوقی خود را اینجا بنویسید..."></textarea>
 
-        <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button id="reblaw-ai-submit"
+                type="button"
+                style="margin-top:12px;padding:10px 22px;border:none;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#22c55e);color:#0b1020;font-weight:900;cursor:pointer;">
+            ارسال سؤال
+        </button>
 
-            <button id="reblaw-ai-submit"
-                    type="button"
-                    style="padding:10px 26px;border:none;border-radius:999px;
-                           background:linear-gradient(135deg,#22c55e,#16a34a);
-                           color:#02130a;font-weight:900;cursor:pointer;
-                           display:flex;align-items:center;gap:8px;">
-                <span id="reblaw-ai-btn-text">ارسال سؤال</span>
-                <span id="reblaw-ai-spinner"
-                      style="display:none;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);
-                             border-top-color:#000;border-radius:50%;
-                             animation:reblawSpin .8s linear infinite"></span>
-            </button>
-
-            <button id="reblaw-ai-copy"
-                    type="button"
-                    style="display:none;padding:8px 16px;border-radius:999px;
-                           background:#111827;color:#e5e7eb;border:1px solid #374151;
-                           font-size:12px;cursor:pointer;">
-                📋 کپی پاسخ
-            </button>
-
-        </div>
-
-        <div id="reblaw-ai-status" style="margin-top:10px;font-size:13px;display:none;"></div>
+        <div id="reblaw-ai-status" style="margin-top:12px;font-size:13px;display:none;"></div>
 
         <div id="reblaw-ai-answer"
-             style="margin-top:14px;padding:16px;border-radius:12px;
-                    background:#050c1b;border:1px solid #232b46;
-                    font-size:14px;line-height:2;display:none;white-space:pre-wrap;"></div>
+             style="margin-top:14px;padding:14px;border-radius:10px;background:#050c1b;border:1px solid #232b46;font-size:14px;line-height:2;display:none;white-space:pre-wrap;"></div>
     </div>
 
-    <style>
-    @keyframes reblawSpin { to { transform: rotate(360deg); } }
-    </style>
-
     <script>
-    (function(){
-        var box=document.getElementById('reblaw-ai-box');
-        if(!box) return;
+    (function () {
+        function ready(fn){ if(document.readyState !== 'loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
 
-        var q=document.getElementById('reblaw-ai-question');
-        var btn=document.getElementById('reblaw-ai-submit');
-        var txt=document.getElementById('reblaw-ai-btn-text');
-        var sp=document.getElementById('reblaw-ai-spinner');
-        var st=document.getElementById('reblaw-ai-status');
-        var ans=document.getElementById('reblaw-ai-answer');
-        var cp=document.getElementById('reblaw-ai-copy');
+        ready(function () {
+            var box       = document.getElementById('reblaw-ai-box');
+            var questionEl = document.getElementById('reblaw-ai-question');
+            var submitBtn  = document.getElementById('reblaw-ai-submit');
+            var statusEl   = document.getElementById('reblaw-ai-status');
+            var answerEl   = document.getElementById('reblaw-ai-answer');
 
-        var ajaxUrl='<?php echo esc_js($ajax_url); ?>';
-        var nonce='<?php echo esc_js($nonce); ?>';
-        var postId=box.getAttribute('data-post-id')||0;
+            if (!box || !questionEl || !submitBtn || !statusEl || !answerEl) return;
 
-        function setLoading(v){
-            btn.disabled=v;
-            sp.style.display=v?'inline-block':'none';
-            txt.textContent=v?'در حال تحلیل…':'ارسال سؤال';
-        }
+            var ajaxUrl = '<?php echo esc_js( $ajax_url ); ?>';
+            var nonce   = '<?php echo esc_js( $nonce ); ?>';
+            var postId  = box.getAttribute('data-post-id') || '0';
 
-        btn.onclick=function(){
-            var question=(q.value||'').trim();
-            if(!question){
-                st.style.display='block';
-                st.style.color='#ff6b6b';
-                st.textContent='لطفاً سؤال را وارد کنید.';
-                return;
+            function setStatus(text, color){
+                statusEl.style.display = 'block';
+                statusEl.style.color = color || '#ffd166';
+                statusEl.textContent = text;
             }
 
-            setLoading(true);
-            st.style.display='block';
-            st.style.color='#fbbf24';
-            st.textContent='در حال تحلیل سؤال حقوقی…';
-            ans.style.display='none';
-            cp.style.display='none';
+            submitBtn.addEventListener('click', function (e) {
+                e.preventDefault();
 
-            var fd=new FormData();
-            fd.append('action','reblaw_ai_handle_request');
-            fd.append('nonce',nonce);
-            fd.append('question',question);
-            fd.append('post_id',postId);
-
-            fetch(ajaxUrl,{method:'POST',credentials:'same-origin',body:fd})
-            .then(r=>r.json())
-            .then(d=>{
-                setLoading(false);
-                if(d.success && d.data && d.data.answer){
-                    st.style.display='none';
-                    ans.style.display='block';
-                    ans.textContent=d.data.answer;
-                    cp.style.display='inline-block';
-                }else{
-                    st.style.color='#ff6b6b';
-                    st.textContent=(d.data&&d.data.message)||'خطا در دریافت پاسخ.';
+                var question = (questionEl.value || '').trim();
+                if (!question) {
+                    setStatus('لطفاً ابتدا سؤال خود را وارد کنید.', '#ff6b6b');
+                    return;
                 }
-            })
-            .catch(()=>{
-                setLoading(false);
-                st.style.color='#ff6b6b';
-                st.textContent='خطا در ارتباط با سرور.';
-            });
-        };
 
-        cp.onclick=function(){
-            navigator.clipboard.writeText(ans.textContent).then(function(){
-                cp.textContent='✅ کپی شد';
-                setTimeout(()=>cp.textContent='📋 کپی پاسخ',1500);
+                setStatus('در حال ارسال سؤال به هوش مصنوعی...', '#ffd166');
+                answerEl.style.display = 'none';
+                answerEl.textContent = '';
+
+                var formData = new FormData();
+                formData.append('action', 'reblaw_ai_handle_request');
+                formData.append('nonce', nonce);
+                formData.append('question', question);
+                formData.append('post_id', postId);
+
+                fetch(ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body: formData
+                })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    if (data && data.success && data.data && data.data.answer) {
+                        statusEl.style.display = 'none';
+                        answerEl.style.display = 'block';
+                        answerEl.textContent = data.data.answer;
+                    } else {
+                        var msg = (data && data.data && data.data.message) ? data.data.message : 'پاسخی از هوش مصنوعی دریافت نشد.';
+                        setStatus(msg, '#ff6b6b');
+                    }
+                })
+                .catch(function () {
+                    setStatus('خطا در ارتباط با سرور. لطفاً بعداً دوباره تلاش کنید.', '#ff6b6b');
+                });
             });
-        };
+        });
     })();
     </script>
 
     <?php
     return ob_get_clean();
 }
-
+add_shortcode( 'reblaw_legal_ai', 'reblaw_legal_ai_shortcode' );
 
 /*--------------------------------------------------------------
   4) Law article detection: "ماده ۱۰ قانون مدنی"
