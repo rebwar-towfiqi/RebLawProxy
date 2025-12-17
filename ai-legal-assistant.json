@@ -1,0 +1,753 @@
+{
+  "version": "0.4",
+  "title": "RebLaw AI Legal Assistant",
+  "type": "page",
+  "content": [
+    {
+      "id": "section-hero-ai-v2",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "content_width": "boxed",
+        "gap": "no",
+        "padding": {
+          "unit": "px",
+          "top": "120",
+          "right": "0",
+          "bottom": "120",
+          "left": "0",
+          "isLinked": false
+        },
+        "background_background": "classic",
+        "background_image": {
+          "url": "https://images.unsplash.com/photo-1554774853-719586f10c67"
+        },
+        "background_position": "center center",
+        "background_repeat": "no-repeat",
+        "background_size": "cover",
+        "background_overlay_background": "classic",
+        "background_overlay_color": "#000000",
+        "background_overlay_opacity": 0.55
+      },
+      "elements": [
+        {
+          "id": "col-hero-ai-v2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {
+            "_column_size": 100,
+            "horizontal_align": "center"
+          },
+          "elements": [
+            {
+              "id": "hero-ai-heading-v2",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "دستیار هوشمند حقوقی RebLaw",
+                "header_size": "h1",
+                "align": "center"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "hero-ai-subtitle-v2",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "مشاوره حقوقی، درخواست لایحه و دادخواست، تحلیل پرونده، بررسی قرارداد و مدل‌سازی استراتژی دفاع در یک صفحه واحد.<br/>One smart legal interface for consulting, petitions, briefs, contract review and litigation strategy.",
+                "align": "center"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "hero-ai-buttons-row-v2",
+              "elType": "section",
+              "isInner": true,
+              "settings": {},
+              "elements": [
+                {
+                  "id": "hero-ai-buttons-col-v2",
+                  "elType": "column",
+                  "isInner": true,
+                  "settings": {
+                    "_column_size": 100,
+                    "horizontal_align": "center"
+                  },
+                  "elements": [
+                    {
+                      "id": "hero-ai-button-start-v2",
+                      "elType": "widget",
+                      "widgetType": "button",
+                      "settings": {
+                        "text": "شروع گفت‌وگو با هوش مصنوعی",
+                        "size": "lg",
+                        "align": "center",
+                        "button_type": "success",
+                        "link": {
+                          "url": "#ai-assistant-form"
+                        }
+                      },
+                      "elements": [],
+                      "isInner": false
+                    },
+                    {
+                      "id": "hero-ai-button-human-v2",
+                      "elType": "widget",
+                      "widgetType": "button",
+                      "settings": {
+                        "text": "نیاز به وکیل انسانی دارید؟",
+                        "size": "sm",
+                        "align": "center",
+                        "button_type": "info",
+                        "link": {
+                          "url": "/contact/"
+                        }
+                      },
+                      "elements": [],
+                      "isInner": false
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "section-service-types-v2",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "content_width": "boxed",
+        "padding": {
+          "unit": "px",
+          "top": "60",
+          "right": "0",
+          "bottom": "40",
+          "left": "0",
+          "isLinked": false
+        }
+      },
+      "elements": [
+        {
+          "id": "col-service-types-title-v2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {
+            "_column_size": 100
+          },
+          "elements": [
+            {
+              "id": "service-types-heading-v2",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "چه کمکی از دستیار هوشمند حقوقی RebLaw می‌خواهید؟",
+                "header_size": "h2",
+                "align": "center"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "service-types-text-v2",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "نوع خدمت مورد نیاز خود را انتخاب کنید تا پاسخ‌های هوش مصنوعی دقیق‌تر، ساختارمندتر و نزدیک‌تر به نیاز واقعی شما باشد.",
+                "align": "center"
+              },
+              "elements": [],
+              "isInner": false
+            }
+          ]
+        },
+        {
+          "id": "service-types-inner-row1-v2",
+          "elType": "section",
+          "isInner": true,
+          "settings": {
+            "content_width": "boxed"
+          },
+          "elements": [
+            {
+              "id": "col-type-consult-v2",
+              "elType": "column",
+              "isInner": true,
+              "settings": {
+                "_column_size": 33
+              },
+              "elements": [
+                {
+                  "id": "box-type-consult-v2",
+                  "elType": "widget",
+                  "widgetType": "icon-box",
+                  "settings": {
+                    "icon": "fa fa-comments",
+                    "title_text": "مشاوره حقوقی",
+                    "description_text": "شرح کلی یا جزئیات پرونده خود را بنویسید تا تحلیل و راهکار حقوقی دریافت کنید.",
+                    "align": "center"
+                  },
+                  "elements": [],
+                  "isInner": false
+                }
+              ]
+            },
+            {
+              "id": "col-type-brief-v2",
+              "elType": "column",
+              "isInner": true,
+              "settings": {
+                "_column_size": 33
+              },
+              "elements": [
+                {
+                  "id": "box-type-brief-v2",
+                  "elType": "widget",
+                  "widgetType": "icon-box",
+                  "settings": {
+                    "icon": "fa fa-file-signature",
+                    "title_text": "درخواست لایحه",
+                    "description_text": "برای جلسه دادگاه خود، لایحه دفاعیه مستند و ساختارمند دریافت کنید.",
+                    "align": "center"
+                  },
+                  "elements": [],
+                  "isInner": false
+                }
+              ]
+            },
+            {
+              "id": "col-type-petition-v2",
+              "elType": "column",
+              "isInner": true,
+              "settings": {
+                "_column_size": 33
+              },
+              "elements": [
+                {
+                  "id": "box-type-petition-v2",
+                  "elType": "widget",
+                  "widgetType": "icon-box",
+                  "settings": {
+                    "icon": "fa fa-file-alt",
+                    "title_text": "درخواست دادخواست",
+                    "description_text": "از مطالبه وجه و خسارت تا طلاق و تخلیه؛ متن پیشنهادی دادخواست را بر اساس شرح شما تولید می‌کنیم.",
+                    "align": "center"
+                  },
+                  "elements": [],
+                  "isInner": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "service-types-inner-row2-v2",
+          "elType": "section",
+          "isInner": true,
+          "settings": {
+            "content_width": "boxed",
+            "padding": {
+              "unit": "px",
+              "top": "20",
+              "right": "0",
+              "bottom": "0",
+              "left": "0",
+              "isLinked": false
+            }
+          },
+          "elements": [
+            {
+              "id": "col-type-case-v2",
+              "elType": "column",
+              "isInner": true,
+              "settings": {
+                "_column_size": 33
+              },
+              "elements": [
+                {
+                  "id": "box-type-case-v2",
+                  "elType": "widget",
+                  "widgetType": "icon-box",
+                  "settings": {
+                    "icon": "fa fa-balance-scale",
+                    "title_text": "تحلیل پرونده",
+                    "description_text": "نقاط قوت و ضعف پرونده، مواد قانونی مرتبط و مسیرهای پیشنهادی دفاع یا طرح دعوا.",
+                    "align": "center"
+                  },
+                  "elements": [],
+                  "isInner": false
+                }
+              ]
+            },
+            {
+              "id": "col-type-contract-v2",
+              "elType": "column",
+              "isInner": true,
+              "settings": {
+                "_column_size": 33
+              },
+              "elements": [
+                {
+                  "id": "box-type-contract-v2",
+                  "elType": "widget",
+                  "widgetType": "icon-box",
+                  "settings": {
+                    "icon": "fa fa-handshake",
+                    "title_text": "بررسی قرارداد",
+                    "description_text": "قراردادهای تجاری، استارتاپی، رمزارز و همکاری را از نظر ریسک و تعهدات بررسی کنید.",
+                    "align": "center"
+                  },
+                  "elements": [],
+                  "isInner": false
+                }
+              ]
+            },
+            {
+              "id": "col-type-expert-v2",
+              "elType": "column",
+              "isInner": true,
+              "settings": {
+                "_column_size": 33
+              },
+              "elements": [
+                {
+                  "id": "box-type-expert-v2",
+                  "elType": "widget",
+                  "widgetType": "icon-box",
+                  "settings": {
+                    "icon": "fa fa-user-tie",
+                    "title_text": "نظر کارشناسی",
+                    "description_text": "دریافت تحلیل کارشناسی حقوقی در مورد یک تصمیم، قرارداد یا دعوای احتمالی.",
+                    "align": "center"
+                  },
+                  "elements": [],
+                  "isInner": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "service-types-inner-row3-v2",
+          "elType": "section",
+          "isInner": true,
+          "settings": {
+            "content_width": "boxed",
+            "padding": {
+              "unit": "px",
+              "top": "20",
+              "right": "0",
+              "bottom": "0",
+              "left": "0",
+              "isLinked": false
+            }
+          },
+          "elements": [
+            {
+              "id": "col-type-qa-v2",
+              "elType": "column",
+              "isInner": true,
+              "settings": {
+                "_column_size": 33
+              },
+              "elements": [
+                {
+                  "id": "box-type-qa-v2",
+                  "elType": "widget",
+                  "widgetType": "icon-box",
+                  "settings": {
+                    "icon": "fa fa-question-circle",
+                    "title_text": "پرسش سریع (Q&A)",
+                    "description_text": "برای سؤالات کوتاه و مشخص در مورد یک ماده قانونی، مسئولیت یا تکلیف خاص.",
+                    "align": "center"
+                  },
+                  "elements": [],
+                  "isInner": false
+                }
+              ]
+            },
+            {
+              "id": "col-type-letter-v2",
+              "elType": "column",
+              "isInner": true,
+              "settings": {
+                "_column_size": 33
+              },
+              "elements": [
+                {
+                  "id": "box-type-letter-v2",
+                  "elType": "widget",
+                  "widgetType": "icon-box",
+                  "settings": {
+                    "icon": "fa fa-envelope-open-text",
+                    "title_text": "درخواست مکاتبات حقوقی",
+                    "description_text": "تهیه متن اظهارنامه، اخطار، ایمیل رسمی یا مکاتبات حقوقی حرفه‌ای.",
+                    "align": "center"
+                  },
+                  "elements": [],
+                  "isInner": false
+                }
+              ]
+            },
+            {
+              "id": "col-type-strategy-v2",
+              "elType": "column",
+              "isInner": true,
+              "settings": {
+                "_column_size": 33
+              },
+              "elements": [
+                {
+                  "id": "box-type-strategy-v2",
+                  "elType": "widget",
+                  "widgetType": "icon-box",
+                  "settings": {
+                    "icon": "fa fa-chess-knight",
+                    "title_text": "مدل‌سازی دفاعیه و استراتژی",
+                    "description_text": "شبیه‌سازی سناریوهای دفاعی مختلف و پیشنهاد استراتژی حقوقی برای پرونده‌های پیچیده.",
+                    "align": "center"
+                  },
+                  "elements": [],
+                  "isInner": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "section-ai-form-v2",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "content_width": "boxed",
+        "padding": {
+          "unit": "px",
+          "top": "60",
+          "right": "0",
+          "bottom": "60",
+          "left": "0",
+          "isLinked": false
+        },
+        "html_anchor": "ai-assistant-form"
+      },
+      "elements": [
+        {
+          "id": "col-ai-form-left-v2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {
+            "_column_size": 50
+          },
+          "elements": [
+            {
+              "id": "ai-form-heading-v2",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "چطور درخواست خود را برای دستیار هوشمند بنویسیم؟",
+                "header_size": "h2",
+                "align": "right"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "ai-form-text-v2",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "در ابتدای پیام خود، نوع خدمت را دقیق بنویسید؛ برای مثال:<br/>«نوع خدمت: درخواست لایحه دفاعیه در پرونده...»،<br/>سپس وقایع را به ترتیب زمانی، همراه با تاریخ‌ها، نام طرفین و مدارک مهم توضیح دهید.",
+                "align": "right"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "ai-form-tips-heading-v2",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "چند نکته برای دریافت پاسخ بهتر",
+                "header_size": "h4",
+                "align": "right"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "ai-form-tips-list-v2",
+              "elType": "widget",
+              "widgetType": "icon-list",
+              "settings": {
+                "icon": "fa fa-check-circle",
+                "icon_align": "right",
+                "items": [
+                  {
+                    "text": "وقایع را کوتاه، دقیق و به ترتیب زمانی بنویسید.",
+                    "_id": "tip1"
+                  },
+                  {
+                    "text": "هدف نهایی خود را مشخص کنید: مشاوره، لایحه، دادخواست، قرارداد یا استراتژی دفاع.",
+                    "_id": "tip2"
+                  },
+                  {
+                    "text": "اگر رأی، ابلاغ، یا مهلت دادرسی دارید، حتماً ذکر کنید.",
+                    "_id": "tip3"
+                  },
+                  {
+                    "text": "اطلاعات خیلی حساس هویتی یا مالی را تا حد امکان حذف یا ماسک کنید.",
+                    "_id": "tip4"
+                  }
+                ]
+              },
+              "elements": [],
+              "isInner": false
+            }
+          ]
+        },
+        {
+          "id": "col-ai-form-right-v2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {
+            "_column_size": 50
+          },
+          "elements": [
+            {
+              "id": "ai-form-box-heading-v2",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "باکس گفت‌وگو با هوش مصنوعی RebLaw",
+                "header_size": "h3",
+                "align": "center"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "ai-form-shortcode-v2",
+              "elType": "widget",
+              "widgetType": "shortcode",
+              "settings": {
+                "shortcode": "[reblaw_ai]"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "ai-form-note-v2",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "این باکس به افزونه اختصاصی RebLaw AI متصل است و درخواست شما را به‌صورت امن برای موتور هوش مصنوعی ارسال می‌کند.",
+                "align": "center"
+              },
+              "elements": [],
+              "isInner": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "section-examples-v2",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "content_width": "boxed",
+        "padding": {
+          "unit": "px",
+          "top": "40",
+          "right": "0",
+          "bottom": "40",
+          "left": "0",
+          "isLinked": false
+        }
+      },
+      "elements": [
+        {
+          "id": "col-examples-v2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {
+            "_column_size": 100
+          },
+          "elements": [
+            {
+              "id": "examples-heading-v2",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "نمونه درخواست‌هایی که می‌توانید ثبت کنید",
+                "header_size": "h2",
+                "align": "center"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "examples-text-v2",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "اگر مطمئن نیستید چطور شروع کنید، می‌توانید از این نمونه‌ها الهام بگیرید و متن خود را بر اساس آن‌ها تنظیم کنید.",
+                "align": "center"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "examples-list-v2",
+              "elType": "widget",
+              "widgetType": "icon-list",
+              "settings": {
+                "icon": "fa fa-lightbulb",
+                "icon_align": "right",
+                "items": [
+                  {
+                    "text": "«لطفاً یک دادخواست مطالبه وجه براساس قرارداد عادی مورخ ۱۴۰۲/۰۳/۱۰ تنظیم کن.»",
+                    "_id": "ex1"
+                  },
+                  {
+                    "text": "«لطفاً لایحه دفاعیه در پرونده ضرب و جرح بدون گواهی پزشکی در روز حادثه بنویس.»",
+                    "_id": "ex2"
+                  },
+                  {
+                    "text": "«این قرارداد شراکت را از نظر ریسک حقوقی بررسی کن و پیشنهاد اصلاح بده.»",
+                    "_id": "ex3"
+                  },
+                  {
+                    "text": "«برای این پرونده خانوادگی، استراتژی دفاع و مواد قانونی مهم را معرفی کن.»",
+                    "_id": "ex4"
+                  },
+                  {
+                    "text": "«یک متن اظهارنامه رسمی برای مطالبه اجرت‌المثل ایام زوجیت تهیه کن.»",
+                    "_id": "ex5"
+                  }
+                ]
+              },
+              "elements": [],
+              "isInner": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "section-final-cta-ai-v2",
+      "elType": "section",
+      "isInner": false,
+      "settings": {
+        "content_width": "boxed",
+        "padding": {
+          "unit": "px",
+          "top": "60",
+          "right": "0",
+          "bottom": "60",
+          "left": "0",
+          "isLinked": false
+        },
+        "background_background": "classic",
+        "background_color": "#0f3c4c"
+      },
+      "elements": [
+        {
+          "id": "col-final-cta-ai-v2",
+          "elType": "column",
+          "isInner": false,
+          "settings": {
+            "_column_size": 100
+          },
+          "elements": [
+            {
+              "id": "final-cta-ai-heading-v2",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "آماده‌اید پرونده‌تان را هوشمندانه مدیریت کنید؟",
+                "header_size": "h2",
+                "align": "center",
+                "title_color": "#ffffff"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "final-cta-ai-text-v2",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "همین حالا گفت‌وگو با دستیار هوشمند حقوقی RebLaw را آغاز کنید، یا در صورت نیاز به همراهی کامل، از طریق فرم تماس یا ربات تلگرام با ما در ارتباط باشید.",
+                "align": "center",
+                "text_color": "#ffffff"
+              },
+              "elements": [],
+              "isInner": false
+            },
+            {
+              "id": "final-cta-ai-buttons-inner-v2",
+              "elType": "section",
+              "isInner": true,
+              "settings": {
+                "content_width": "boxed"
+              },
+              "elements": [
+                {
+                  "id": "final-cta-ai-buttons-col-v2",
+                  "elType": "column",
+                  "isInner": true,
+                  "settings": {
+                    "_column_size": 100,
+                    "horizontal_align": "center"
+                  },
+                  "elements": [
+                    {
+                      "id": "final-cta-ai-button-start-v2",
+                      "elType": "widget",
+                      "widgetType": "button",
+                      "settings": {
+                        "text": "شروع گفت‌وگو با هوش مصنوعی",
+                        "size": "lg",
+                        "align": "center",
+                        "button_type": "success",
+                        "link": {
+                          "url": "#ai-assistant-form"
+                        }
+                      },
+                      "elements": [],
+                      "isInner": false
+                    },
+                    {
+                      "id": "final-cta-ai-button-bot-v2",
+                      "elType": "widget",
+                      "widgetType": "button",
+                      "settings": {
+                        "text": "ورود به ربات تلگرام RebLawBot",
+                        "size": "sm",
+                        "align": "center",
+                        "button_type": "info",
+                        "link": {
+                          "url": "https://t.me/RebLCBot"
+                        }
+                      },
+                      "elements": [],
+                      "isInner": false
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

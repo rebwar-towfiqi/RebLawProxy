@@ -1,0 +1,6 @@
+python-telegram-bot==20.3
+openai
+psycopg2-binary
+python-dotenv
+sqlite3
+httpx~=0.24.0
