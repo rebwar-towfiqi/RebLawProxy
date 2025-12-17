@@ -2,7 +2,7 @@
 /*
 Plugin Name: RebLaw Legal AI
 Description: Legal AI Q&A box for RebLaw website with WooCommerce/YITH purchase-based access control.
-Version: 2.0.0
+Version: 2.1.0
 Author: Rebwar Towfiqi
 */
 
@@ -19,15 +19,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Expected: POST JSON { law_name, article_number } -> { success, law_name, law_code, article_number, text, source }
  */
 if ( ! defined( 'REBLAW_LAW_API_URL' ) ) {
-    define('REBLAW_AI_PROXY_URL', 'https://reblawproxy-production.up.railway.app/ask');
+    // TODO: اگر URL واقعی Law API متفاوت است، اینجا اصلاح کنید
+    define( 'REBLAW_LAW_API_URL', 'https://reblaw-law-api-production.up.railway.app/api/article-by-name' );
 }
 
 /**
- * API: پراکسی هوش مصنوعی (حتماً آدرس واقعی خودتان را تنظیم کنید)
- * Expected: POST JSON { messages:[...], meta:{...} } -> { success:true, answer:"..." }
+ * API: پراکسی هوش مصنوعی
+ * Recommended: https://reblawproxy-production.up.railway.app/ask
  */
 if ( ! defined( 'REBLAW_AI_PROXY_URL' ) ) {
-    define('REBLAW_AI_PROXY_URL', 'https://reblawproxy-production.up.railway.app/ask');
+    define( 'REBLAW_AI_PROXY_URL', 'https://reblawproxy-production.up.railway.app/ask' );
 }
 
 /**
@@ -37,58 +38,49 @@ if ( ! defined( 'REBLAW_BOT_LINK' ) ) {
     define( 'REBLAW_BOT_LINK', 'https://t.me/RebLCBot?start=receipt' );
 }
 
+/**
+ * Cases API base (optional)
+ * اگر سرویس پرونده‌ها ندارید، می‌توانید shortcode مربوط به cases را استفاده نکنید.
+ */
+if ( ! defined( 'REBLAW_CASES_API_BASE' ) ) {
+    // اگر کیس‌ها روی همین پراکسی نیست، این مقدار را تغییر دهید
+    define( 'REBLAW_CASES_API_BASE', 'https://reblawproxy-production.up.railway.app' );
+}
+
 /*--------------------------------------------------------------
   1) Access Control (WooCommerce Purchase + optional activation code)
 --------------------------------------------------------------*/
 
-/**
- * Map page ID -> Required WooCommerce Product ID
- * Replace these IDs with your real page/product IDs if needed.
- */
 function reblaw_get_required_product_for_page( $post_id ) {
     switch ( (int) $post_id ) {
         case 4374: // صفحه مشاوره فوری
-            return 4757; // Product: اشتراک مشاوره فوری
+            return 4757;
         case 4376: // صفحه درخواست لایحه
-            return 4760; // Product: اشتراک درخواست لایحه
+            return 4760;
         case 4375: // صفحه تحلیل پرونده
-            return 4761; // Product: اشتراک تحلیل پرونده
+            return 4761;
         default:
-            return null; // no lock
+            return null;
     }
 }
 
-/**
- * Whether user has access based on:
- * - If page has no required product => access
- * - Must be logged in
- * - Either:
- *   a) has activation code meta, OR
- *   b) has purchased required product (any paid status)
- *
- * You can also force product with shortcode attribute: product="4761"
- */
 function reblaw_user_has_access_for_page( $user_id, $post_id, $forced_product_id = null ) {
 
     $required_product_id = $forced_product_id ? (int) $forced_product_id : reblaw_get_required_product_for_page( $post_id );
 
-    // Not locked
     if ( empty( $required_product_id ) ) {
         return true;
     }
 
-    // Not logged in => no access
     if ( ! $user_id ) {
         return false;
     }
 
-    // Manual activation code (for offline/manual approval)
     $activation_code = get_user_meta( $user_id, 'reblaw_activation_code', true );
     if ( ! empty( $activation_code ) ) {
         return true;
     }
 
-    // WooCommerce purchase check
     if ( function_exists( 'wc_customer_bought_product' ) ) {
         $user = get_user_by( 'id', $user_id );
         if ( $user && ! empty( $user->user_email ) ) {
@@ -146,8 +138,7 @@ function reblaw_save_activation_code( $user_id ) {
 }
 
 /*--------------------------------------------------------------
-  3) Shortcode: [reblaw_legal_ai]
-     Optional: [reblaw_legal_ai product="4761"]
+  3) Shortcode: [reblaw_legal_ai]  Optional: [reblaw_legal_ai product="4761"]
 --------------------------------------------------------------*/
 
 function reblaw_legal_ai_shortcode( $atts = [] ) {
@@ -157,7 +148,7 @@ function reblaw_legal_ai_shortcode( $atts = [] ) {
 
     $atts = shortcode_atts(
         [
-            'product' => null, // Force required product id
+            'product' => null,
         ],
         $atts,
         'reblaw_legal_ai'
@@ -165,10 +156,8 @@ function reblaw_legal_ai_shortcode( $atts = [] ) {
 
     $forced_product_id = ! empty( $atts['product'] ) ? (int) $atts['product'] : null;
 
-    // Detect current page ID reliably
-    if ( function_exists( 'get_queried_object_id' ) ) {
-        $post_id = (int) get_queried_object_id();
-    } else {
+    $post_id = function_exists( 'get_queried_object_id' ) ? (int) get_queried_object_id() : 0;
+    if ( ! $post_id ) {
         global $post;
         $post_id = isset( $post->ID ) ? (int) $post->ID : 0;
     }
@@ -178,7 +167,6 @@ function reblaw_legal_ai_shortcode( $atts = [] ) {
 
     ob_start();
 
-    // If no access: show lock box
     if ( ! $has_access ) {
         ?>
         <div style="max-width:720px;margin:28px auto;padding:22px;border-radius:14px;background:linear-gradient(135deg,#0b1220,#111827);color:#e5e7eb;border:1px solid rgba(148,163,184,.25);box-shadow:0 18px 40px rgba(2,6,23,.25);direction:rtl;text-align:right;">
@@ -205,9 +193,8 @@ function reblaw_legal_ai_shortcode( $atts = [] ) {
         <?php
         return ob_get_clean();
     }
-
-    // Access OK: show AI box
     ?>
+
     <div id="reblaw-ai-box"
          data-post-id="<?php echo esc_attr( $post_id ); ?>"
          style="max-width:720px;margin:28px auto;padding:24px;border-radius:14px;background:#020824;color:#fff;box-shadow:0 0 25px rgba(0,0,0,0.45);direction:rtl;text-align:right;border:1px solid rgba(148,163,184,.18);">
@@ -225,8 +212,7 @@ function reblaw_legal_ai_shortcode( $atts = [] ) {
             ارسال سؤال
         </button>
 
-        <div id="reblaw-ai-status"
-             style="margin-top:12px;font-size:13px;display:none;"></div>
+        <div id="reblaw-ai-status" style="margin-top:12px;font-size:13px;display:none;"></div>
 
         <div id="reblaw-ai-answer"
              style="margin-top:14px;padding:14px;border-radius:10px;background:#050c1b;border:1px solid #232b46;font-size:14px;line-height:2;display:none;white-space:pre-wrap;"></div>
@@ -297,8 +283,8 @@ function reblaw_legal_ai_shortcode( $atts = [] ) {
         });
     })();
     </script>
-    <?php
 
+    <?php
     return ob_get_clean();
 }
 add_shortcode( 'reblaw_legal_ai', 'reblaw_legal_ai_shortcode' );
@@ -309,14 +295,11 @@ add_shortcode( 'reblaw_legal_ai', 'reblaw_legal_ai_shortcode' );
 
 function reblaw_detect_law_article( $question ) {
     $question = trim( (string) $question );
-
-    // Example: ماده 10 قانون مدنی / ماده ۱۰ قانون مدنی
     $pattern = '/ماده\s*([0-9۰-۹]+)\s*قانون\s*([^\s،\.]+(?:\s*[^\s،\.]+)*)/u';
 
     if ( preg_match( $pattern, $question, $matches ) ) {
 
         $raw_number = $matches[1];
-        // convert Persian digits to English
         $en_number = strtr( $raw_number, [
             '۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9'
         ] );
@@ -324,12 +307,7 @@ function reblaw_detect_law_article( $question ) {
         $article_number = (int) $en_number;
         $law_name_raw   = trim( $matches[2] );
 
-        // Normalize common naming
-        if ( $law_name_raw === 'مدنی' ) {
-            $law_name = 'قانون مدنی';
-        } else {
-            $law_name = $law_name_raw;
-        }
+        $law_name = ( $law_name_raw === 'مدنی' ) ? 'قانون مدنی' : $law_name_raw;
 
         if ( $article_number <= 0 || empty( $law_name ) ) {
             return null;
@@ -368,6 +346,7 @@ function reblaw_fetch_article_from_api( $law_name, $article_number ) {
     ] );
 
     if ( is_wp_error( $response ) ) {
+        error_log('[RebLaw LawAPI] wp_remote_post error: ' . $response->get_error_message());
         return null;
     }
 
@@ -401,7 +380,6 @@ add_action( 'wp_ajax_nopriv_reblaw_ai_handle_request', 'reblaw_ai_handle_request
 
 function reblaw_ai_handle_request() {
 
-    // 1) Nonce security
     if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'reblaw_ai_nonce' ) ) {
         wp_send_json_error( [ 'message' => 'درخواست نامعتبر است. لطفاً صفحه را رفرش کنید.' ] );
     }
@@ -409,18 +387,19 @@ function reblaw_ai_handle_request() {
     $post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
     $user_id = get_current_user_id();
 
-    // 2) Access check
     if ( ! reblaw_user_has_access_for_page( $user_id, $post_id ) ) {
         wp_send_json_error( [ 'message' => 'دسترسی شما برای این بخش فعال نیست. لطفاً با همان حسابی که خرید کرده‌اید وارد شوید یا دسترسی را فعال کنید.' ] );
     }
 
-    // 3) Question
-    $question = isset( $_POST['question'] ) ? sanitize_text_field( wp_unslash( $_POST['question'] ) ) : '';
-    if ( empty( $question ) ) {
+    // Use textarea sanitization to avoid losing punctuation/newlines
+    $question = isset( $_POST['question'] ) ? sanitize_textarea_field( wp_unslash( $_POST['question'] ) ) : '';
+    $question = trim( (string) $question );
+
+    if ( $question === '' ) {
         wp_send_json_error( [ 'message' => 'سؤال خالی است.' ] );
     }
 
-    // 4) Try detect law article and fetch official text
+    // Detect law article and fetch official text
     $article_info  = reblaw_detect_law_article( $question );
     $article_block = '';
     $article_data  = null;
@@ -432,13 +411,15 @@ function reblaw_ai_handle_request() {
         );
 
         if ( $article_data && ! empty( $article_data['text'] ) ) {
+            $law_name_esc = (string) $article_data['law_name'];
+            $art_no_esc   = (int) $article_data['article_number'];
+
             $article_block =
-                "📜 متن رسمی {$article_data['law_name']} – ماده {$article_data['article_number']}:\n"
-                . $article_data['text'] . "\n\n";
+                "📜 متن رسمی {$law_name_esc} – ماده {$art_no_esc}:\n"
+                . (string) $article_data['text'] . "\n\n";
         }
     }
 
-    // 5) System prompt
     $system_prompt =
 "شما دستیار حقوقی هوشمند وب‌سایت RebLaw هستید.
 - حوزه اصلی: حقوق ایران (قانون مدنی، قانون مجازات اسلامی، آیین دادرسی‌ها و سایر قوانین مرتبط).
@@ -446,9 +427,8 @@ function reblaw_ai_handle_request() {
 - از حدس‌زدن متن مواد یا شماره مواد خودداری کن؛ اگر متن رسمی ارائه نشده یا مطمئن نیستی، شفاف بگو.
 - در پایان یادآوری کن که پاسخ جایگزین مشاوره حضوری و وکالت حرفه‌ای نیست.";
 
-    // 6) Build user content
     $user_content = '';
-    if ( ! empty( $article_block ) ) {
+    if ( $article_block !== '' ) {
         $user_content .= $article_block;
     }
     $user_content .= "سؤال کاربر:\n" . $question;
@@ -458,8 +438,12 @@ function reblaw_ai_handle_request() {
         [ 'role' => 'user',   'content' => $user_content ],
     ];
 
+    // Payload compatible with BOTH proxy styles:
+    // - New: {messages:[...], meta:{...}}
+    // - Legacy: {question:"..."}
     $payload = [
         'messages' => $messages,
+        'question' => $question, // fallback for proxies that only accept "question"
         'meta'     => [
             'source'  => 'reblaw-wordpress',
             'user_id' => (int) $user_id,
@@ -467,7 +451,6 @@ function reblaw_ai_handle_request() {
         ],
     ];
 
-    // 7) Send to AI proxy
     $response = wp_remote_post( REBLAW_AI_PROXY_URL, [
         'method'      => 'POST',
         'headers'     => [
@@ -479,13 +462,15 @@ function reblaw_ai_handle_request() {
     ] );
 
     if ( is_wp_error( $response ) ) {
+        error_log('[RebLaw AI] wp_remote_post error: ' . $response->get_error_message());
         wp_send_json_error( [ 'message' => 'خطا در اتصال به سرور هوش مصنوعی. لطفاً بعداً دوباره تلاش کنید.' ] );
     }
 
     $code = (int) wp_remote_retrieve_response_code( $response );
-    $raw  = wp_remote_retrieve_body( $response );
+    $raw  = (string) wp_remote_retrieve_body( $response );
 
-    if ( $code !== 200 || empty( $raw ) ) {
+    if ( $code !== 200 || $raw === '' ) {
+        error_log('[RebLaw AI] Bad response code/body. code=' . $code . ' body=' . substr($raw, 0, 500));
         wp_send_json_error( [ 'message' => 'پاسخ معتبری از سرور هوش مصنوعی دریافت نشد.' ] );
     }
 
@@ -493,7 +478,8 @@ function reblaw_ai_handle_request() {
 
     // Expected: { success:true, answer:"..." }
     if ( ! is_array( $data ) || empty( $data['success'] ) || empty( $data['answer'] ) ) {
-        $msg = ( is_array( $data ) && ! empty( $data['message'] ) ) ? $data['message'] : 'هوش مصنوعی نتوانست پاسخی تولید کند.';
+        $msg = ( is_array( $data ) && ! empty( $data['message'] ) ) ? (string) $data['message'] : 'هوش مصنوعی نتوانست پاسخی تولید کند.';
+        error_log('[RebLaw AI] Unexpected proxy JSON: ' . substr($raw, 0, 500));
         wp_send_json_error( [ 'message' => $msg ] );
     }
 
@@ -514,9 +500,7 @@ function reblaw_display_cases_shortcode( $atts ) {
         'reblaw_cases'
     );
 
-    // TODO: اگر endpoint پرونده‌ها را تغییر دادید، این آدرس را هم اصلاح کنید
-    $api_base = 'https://reblaw-ai-proxy-production.up.railway.app';
-    $api_url  = $api_base . '/cases?limit=' . (int) $atts['limit'];
+    $api_url  = rtrim( REBLAW_CASES_API_BASE, '/' ) . '/cases?limit=' . (int) $atts['limit'];
 
     $response = wp_remote_get( $api_url, [ 'timeout' => 12 ] );
 
@@ -525,9 +509,9 @@ function reblaw_display_cases_shortcode( $atts ) {
     }
 
     $code = (int) wp_remote_retrieve_response_code( $response );
-    $raw  = wp_remote_retrieve_body( $response );
+    $raw  = (string) wp_remote_retrieve_body( $response );
 
-    if ( $code !== 200 || empty( $raw ) ) {
+    if ( $code !== 200 || $raw === '' ) {
         return '<p>⚠ پاسخ نامعتبر از سرور پرونده‌ها (کد ' . esc_html( $code ) . ').</p>';
     }
 
