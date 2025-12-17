@@ -63,10 +63,21 @@ async function handleAsk(req, res) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model,
-        messages: normalized.messages,
-        temperature: 0.3,
-      }),
+  model: process.env.OPENAI_MODEL || "gpt-3.5-turbo",
+  messages: [
+    {
+      role: "system",
+      content:
+        "You are RebLaw, a professional legal assistant. " +
+        "Always answer in the same language as the user's question (Persian/Farsi, Kurdish, or English). " +
+        "If the question is in Persian, answer fully in Persian. " +
+        "Be clear, structured, and practical.",
+    },
+    { role: "user", content: question },
+  ],
+  temperature: 0.2,
+}),
+
     });
 
     const data = await openaiResponse.json();
