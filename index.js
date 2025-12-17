@@ -79,7 +79,7 @@ async function handleAsk(req, res) {
   }
 
   // Safer default than gpt-3.5-turbo (can be overridden in Railway Variables)
-  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const model = process.env.OPENAI_MODEL || "gpt-3.5-turbo";
   const temperature = 0.2;
 
   try {
