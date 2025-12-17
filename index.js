@@ -53,7 +53,7 @@ async function handleAsk(req, res) {
     });
   }
 
-  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const model = process.env.OPENAI_MODEL || "gpt-3.5-turbo";
 
   try {
     const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
