@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Expected: POST JSON { law_name, article_number } -> { success, law_name, law_code, article_number, text, source }
  */
 if ( ! defined( 'REBLAW_LAW_API_URL' ) ) {
-    define( 'REBLAW_LAW_API_URL', 'https://reblawproxy-production.up.railway.app/ask' );
+    define('REBLAW_AI_PROXY_URL', 'https://reblawproxy-production.up.railway.app/ask');
 }
 
 /**
@@ -27,7 +27,7 @@ if ( ! defined( 'REBLAW_LAW_API_URL' ) ) {
  * Expected: POST JSON { messages:[...], meta:{...} } -> { success:true, answer:"..." }
  */
 if ( ! defined( 'REBLAW_AI_PROXY_URL' ) ) {
-    define( 'REBLAW_AI_PROXY_URL', 'https://https://reblawproxy-production.up.railway.app/ask' );
+    define('REBLAW_AI_PROXY_URL', 'https://reblawproxy-production.up.railway.app/ask');
 }
 
 /**
