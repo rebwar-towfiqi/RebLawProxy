@@ -54,8 +54,8 @@ if ( ! defined( 'REBLAW_CASES_API_BASE' ) ) {
 function reblaw_get_required_product_for_page( $post_id ) {
     switch ( (int) $post_id ) {
         case 4374: // صفحه مشاوره فوری
-            return 4757;
-        case 4376: // صفحه درخواست لایحه
+            return 6077;
+        case 4376: // صفحه درخواست لایحه/دادخواست
             return 4760;
         case 4375: // صفحه تحلیل پرونده
             return 4761;
@@ -64,30 +64,135 @@ function reblaw_get_required_product_for_page( $post_id ) {
     }
 }
 
-function reblaw_user_has_access_for_page( $user_id, $post_id, $forced_product_id = null ) {
+/*--------------------------------------------------------------
+  1.1) Entitlements (expiry-based) for smart state: none/expired/active
+--------------------------------------------------------------*/
 
-    $required_product_id = $forced_product_id ? (int) $forced_product_id : reblaw_get_required_product_for_page( $post_id );
+function reblaw_product_validity_days( $product_id ) {
+    $product_id = (int) $product_id;
 
-    if ( empty( $required_product_id ) ) {
-        return true;
+    // سرویس‌های تکی: 1 روز
+    if ( in_array( $product_id, [6077, 4760, 4761], true ) ) {
+        return 1;
     }
 
-    if ( ! $user_id ) {
-        return false;
+    // اشتراک کامل: 30 روز
+    if ( $product_id === 6223 ) {
+        return 30;
     }
 
+    return 0;
+}
+
+function reblaw_get_entitlement_meta_key( $product_id ) {
+    return 'reblaw_expiry_' . (int) $product_id;
+}
+
+add_action( 'woocommerce_order_status_processing', 'reblaw_set_entitlement_expiry_from_order' );
+add_action( 'woocommerce_order_status_completed',  'reblaw_set_entitlement_expiry_from_order' );
+
+function reblaw_set_entitlement_expiry_from_order( $order_id ) {
+    if ( ! function_exists( 'wc_get_order' ) ) return;
+
+    $order = wc_get_order( $order_id );
+    if ( ! $order ) return;
+
+    $user_id = (int) $order->get_user_id();
+    if ( ! $user_id ) return;
+
+    foreach ( $order->get_items() as $item ) {
+        $product_id = (int) $item->get_product_id();
+        $days       = (int) reblaw_product_validity_days( $product_id );
+
+        if ( $days <= 0 ) continue;
+
+        $meta_key = reblaw_get_entitlement_meta_key( $product_id );
+        $now      = time();
+        $current  = (int) get_user_meta( $user_id, $meta_key, true );
+
+        // تمدید هوشمند: اگر هنوز فعال است، روی باقی‌مانده تمدید می‌شود
+        $base = ( $current > $now ) ? $current : $now;
+        $new_expiry = $base + ( $days * DAY_IN_SECONDS );
+
+        update_user_meta( $user_id, $meta_key, $new_expiry );
+    }
+}
+
+/**
+ * وضعیت دسترسی برای یک محصول:
+ * not_logged_in | none | expired | active
+ */
+function reblaw_entitlement_state( $user_id, $product_id ) {
+    $user_id    = (int) $user_id;
+    $product_id = (int) $product_id;
+
+    if ( ! $user_id ) return 'not_logged_in';
+
+    // فعال‌سازی دستی (ادمین) = همیشه فعال
     $activation_code = get_user_meta( $user_id, 'reblaw_activation_code', true );
-    if ( ! empty( $activation_code ) ) {
-        return true;
+    if ( ! empty( $activation_code ) ) return 'active';
+
+    $days = (int) reblaw_product_validity_days( $product_id );
+    if ( $days <= 0 ) return 'none';
+
+    $meta_key = reblaw_get_entitlement_meta_key( $product_id );
+    $expiry   = (int) get_user_meta( $user_id, $meta_key, true );
+
+    if ( $expiry > 0 ) {
+        return ( $expiry >= time() ) ? 'active' : 'expired';
     }
 
-    if ( function_exists( 'wc_customer_bought_product' ) ) {
-        $user = get_user_by( 'id', $user_id );
-        if ( $user && ! empty( $user->user_email ) ) {
-            if ( wc_customer_bought_product( $user->user_email, $user_id, $required_product_id ) ) {
-                return true;
+    // اگر برای خریدهای قدیمی meta نداریم، از آخرین خرید استنتاج می‌کنیم و ذخیره می‌کنیم
+    if ( function_exists( 'wc_get_orders' ) ) {
+        $orders = wc_get_orders([
+            'customer_id' => $user_id,
+            'limit'       => 20,
+            'status'      => ['processing','completed'],
+            'orderby'     => 'date',
+            'order'       => 'DESC',
+        ]);
+
+        foreach ( $orders as $order ) {
+            foreach ( $order->get_items() as $item ) {
+                if ( (int) $item->get_product_id() === $product_id ) {
+
+                    $ts = $order->get_date_paid()
+                        ? $order->get_date_paid()->getTimestamp()
+                        : $order->get_date_created()->getTimestamp();
+
+                    $inferred_expiry = $ts + ( $days * DAY_IN_SECONDS );
+                    update_user_meta( $user_id, $meta_key, $inferred_expiry );
+
+                    return ( $inferred_expiry >= time() ) ? 'active' : 'expired';
+                }
             }
         }
+    }
+
+    return 'none';
+}
+
+/**
+ * آیا کاربر دسترسی فعال دارد؟ (سرویس تکی یا اشتراک کامل)
+ */
+function reblaw_user_has_active_access( $user_id, $required_product_id ) {
+    $user_id = (int) $user_id;
+    $required_product_id = (int) $required_product_id;
+
+    if ( ! $user_id ) return false;
+
+    // فعال‌سازی دستی
+    $activation_code = get_user_meta( $user_id, 'reblaw_activation_code', true );
+    if ( ! empty( $activation_code ) ) return true;
+
+    // دسترسی سرویس تکی
+    if ( reblaw_entitlement_state( $user_id, $required_product_id ) === 'active' ) {
+        return true;
+    }
+
+    // دسترسی اشتراک کامل
+    if ( reblaw_entitlement_state( $user_id, 6223 ) === 'active' ) {
+        return true;
     }
 
     return false;
@@ -288,6 +393,91 @@ function reblaw_legal_ai_shortcode( $atts = [] ) {
     return ob_get_clean();
 }
 add_shortcode( 'reblaw_legal_ai', 'reblaw_legal_ai_shortcode' );
+
+/*--------------------------------------------------------------
+  Smart Lock Shortcode (SAFE): [reblaw_smart_lock ...]
+--------------------------------------------------------------*/
+
+if ( ! function_exists( 'reblaw_smart_lock_shortcode' ) ) {
+
+    function reblaw_smart_lock_shortcode( $atts ) {
+
+        $atts = shortcode_atts([
+            'product_id' => 0,
+            'service'    => 'این سرویس',
+            'full_url'   => 'https://rlawcoin.com/?page_id=6224&lang=fa',
+            'full_pid'   => 6223,
+        ], $atts);
+
+        $product_id = (int) $atts['product_id'];
+        $service    = sanitize_text_field( $atts['service'] );
+        $full_url   = esc_url( $atts['full_url'] );
+        $full_pid   = (int) $atts['full_pid'];
+
+        $user_id = get_current_user_id();
+
+        // اگر توابع entitlement هنوز لود نشده باشند، خطا نده
+        if ( ! function_exists( 'reblaw_entitlement_state' ) ) {
+            $state_service = $user_id ? 'none' : 'not_logged_in';
+            $state_full    = $user_id ? 'none' : 'not_logged_in';
+        } else {
+            // اگر اشتراک کامل فعال است، قفل را اصلاً نمایش نده
+            if ( $user_id && reblaw_entitlement_state( $user_id, $full_pid ) === 'active' ) {
+                return '';
+            }
+
+            $state_service = reblaw_entitlement_state( $user_id, $product_id );
+            $state_full    = reblaw_entitlement_state( $user_id, $full_pid );
+        }
+
+        $title = 'دسترسی این بخش محدود است';
+
+        if ( $state_service === 'not_logged_in' ) {
+            $msg = "برای استفاده از <b>{$service}</b> ابتدا وارد حساب کاربری شوید، سپس اشتراک را تهیه کنید.";
+        } elseif ( $state_full === 'expired' ) {
+            $msg = "اشتراک کامل شما <b style='color:#fde68a'>منقضی شده</b> است. برای ادامه استفاده، لطفاً آن را تمدید کنید.";
+        } elseif ( $state_service === 'expired' ) {
+            $msg = "اشتراک شما برای <b>{$service}</b> <b style='color:#fde68a'>منقضی شده</b> است. برای ادامه استفاده، لطفاً تمدید کنید.";
+        } else {
+            $msg = "برای استفاده از <b>{$service}</b> لازم است اشتراک فعال داشته باشید. به نظر می‌رسد هنوز این اشتراک را تهیه نکرده‌اید.";
+        }
+
+        ob_start(); ?>
+        <div class="reblaw-locked">
+          <div class="reblaw-locked-title"><?php echo esc_html($title); ?></div>
+
+          <p style="margin:0 0 10px;font-size:13px;line-height:2"><?php echo $msg; ?></p>
+
+          <ul>
+            <li>فعال‌سازی بلافاصله پس از پرداخت انجام می‌شود.</li>
+            <li>می‌توانید اشتراک تکی یا اشتراک کامل را انتخاب کنید.</li>
+          </ul>
+
+          <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+            <?php
+              if ( $product_id > 0 ) {
+                  echo do_shortcode('[add_to_cart id="'.$product_id.'" show_price="true"]');
+              }
+              echo do_shortcode('[add_to_cart id="'.$full_pid.'" show_price="true"]');
+            ?>
+          </div>
+
+          <p style="margin:10px 0 0;font-size:12px;line-height:1.9;opacity:.9">
+            نکته: اگر خرید انجام داده‌اید، مطمئن شوید با همان حساب وارد شده‌اید.
+          </p>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+}
+
+add_action( 'init', function() {
+    if ( shortcode_exists( 'reblaw_smart_lock' ) ) {
+        return; // اگر قبلاً ثبت شده، دوباره ثبت نکن
+    }
+    add_shortcode( 'reblaw_smart_lock', 'reblaw_smart_lock_shortcode' );
+}, 20 );
 
 /*--------------------------------------------------------------
   4) Law article detection: "ماده ۱۰ قانون مدنی"
