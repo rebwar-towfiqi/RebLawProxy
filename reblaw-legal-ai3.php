@@ -64,6 +64,40 @@ function reblaw_get_required_product_for_page( $post_id ) {
     }
 }
 
+/**
+ * بر اساس صفحه، محصول لازم را تعیین می‌کند (یا محصول اجباری از shortcode)
+ * سپس با منطق entitlement بررسی می‌کند: سرویس تکی یا اشتراک کامل.
+ */
+function reblaw_user_has_access_for_page( $user_id, $post_id, $forced_product_id = null ) {
+
+    $user_id = (int) $user_id;
+    $post_id = (int) $post_id;
+
+    // اگر ادمین دستی فعال کرده باشد، همیشه دسترسی دارد
+    if ( $user_id ) {
+        $activation_code = get_user_meta( $user_id, 'reblaw_activation_code', true );
+        if ( ! empty( $activation_code ) ) {
+            return true;
+        }
+    }
+
+    // اگر محصول اجباری از shortcode داده شده باشد، همان ملاک است
+    $required_product_id = $forced_product_id ? (int) $forced_product_id : (int) reblaw_get_required_product_for_page( $post_id );
+
+    // اگر صفحه نیاز به محصول خاصی ندارد، دسترسی آزاد
+    if ( ! $required_product_id ) {
+        return true;
+    }
+
+    // کاربر لاگین نیست
+    if ( ! $user_id ) {
+        return false;
+    }
+
+    // دسترسی فعال برای سرویس تکی یا اشتراک کامل
+    return reblaw_user_has_active_access( $user_id, $required_product_id );
+}
+
 /*--------------------------------------------------------------
   1.1) Entitlements (expiry-based) for smart state: none/expired/active
 --------------------------------------------------------------*/
