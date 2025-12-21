@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Expected: POST JSON { law_name, article_number } -> { success, law_name, law_code, article_number, text, source }
  */
 if ( ! defined( 'REBLAW_LAW_API_URL' ) ) {
-    define( 'REBLAW_LAW_API_URL', 'https://reblaw-law-api-production.up.railway.app/api/article-by-name' );
+    define( 'REBLAW_LAW_API_URL', 'https://web-production-7f73e.up.railway.app/api/article-by-name' );
 }
 
 /**
