@@ -2,7 +2,7 @@
 /*
 Plugin Name: RebLaw Legal AI
 Description: Legal AI Q&A + Smart Membership Lock (WooCommerce/YITH compatible) with anti-hallucination law-article guard.
-Version: 2.2.0
+Version: 2.2.1
 Author: Rebwar Towfiqi
 */
 
@@ -379,19 +379,72 @@ function reblaw_normalize_law_name( $law_name ) {
     $law_name = preg_replace('/[\s\:\؛\،\.\-–—]+$/u', '', $law_name);
     $law_name = preg_replace('/\s+/u', ' ', $law_name);
 
+    // Normalize Arabic/Persian letter variants + common ZWNJ variations
+    $law_name = strtr($law_name, [
+        'ي' => 'ی',
+        'ك' => 'ک',
+        'ة' => 'ه',
+        'ۀ' => 'ه',
+        'ؤ' => 'و',
+        'إ' => 'ا',
+        'أ' => 'ا',
+        'ٱ' => 'ا',
+        '‌' => ' ', // ZWNJ -> space for matching
+    ]);
+    $law_name = preg_replace('/\s+/u', ' ', $law_name);
+
+    // Normalize common spelling variants
+    $law_name = preg_replace('/\bآئین\b/u', 'آیین', $law_name);
+    $law_name = preg_replace('/\bآئين\b/u', 'آیین', $law_name);
+
+    // Common aliases / short forms -> canonical name expected by Law API
     $map = [
+        // Civil / Penal
         'مدنی' => 'قانون مدنی',
+        'ق.م' => 'قانون مدنی',
         'مجازات اسلامی' => 'قانون مجازات اسلامی',
         'ق.م.ا' => 'قانون مجازات اسلامی',
-        'ق.م' => 'قانون مدنی',
+
+        // Procedure / enforcement
+        'آیین دادرسی مدنی' => 'قانون آیین دادرسی مدنی',
+        'آئین دادرسی مدنی' => 'قانون آیین دادرسی مدنی',
+        'آیین دادرسی کیفری' => 'قانون آیین دادرسی کیفری',
+        'آئین دادرسی کیفری' => 'قانون آیین دادرسی کیفری',
+        'اجرای احکام مدنی' => 'قانون اجرای احکام مدنی',
+        'شوراهای حل اختلاف' => 'قانون شوراهای حل اختلاف',
+        'نحوه اجرای محکومیت های مالی' => 'قانون نحوه اجرای محکومیت‌های مالی',
+        'نحوه اجرای محکومیت‌های مالی' => 'قانون نحوه اجرای محکومیت‌های مالی',
+        'تشکیلات و آیین دادرسی دیوان عدالت اداری' => 'قانون تشکیلات و آیین دادرسی دیوان عدالت اداری',
+        'تعزیرات حکومتی' => 'قانون تعزیرات حکومتی',
+        'تجارت' => 'قانون تجارت',
     ];
 
     if ( isset($map[$law_name]) ) return $map[$law_name];
 
-    if ( $law_name === 'قانون مجازات اسلامی' ) return $law_name;
-    if ( $law_name === 'قانون مدنی' ) return $law_name;
+    // If user already wrote full name, keep it (normalized)
+    if ( preg_match('/^قانون\s+/u', $law_name) ) return $law_name;
 
-    return $law_name;
+    // Heuristic: WordPress UI captures the text AFTER "قانون" (see reblaw_detect_law_article),
+    // so we usually need to re-add the prefix.
+    $no_prefix_starts = [
+        'لایحه',
+        'مقررات',
+        'کتاب',
+        'آیین‌نامه',
+        'آیین نامه',
+        'آیین‌نامۀ',
+        'آیین نامۀ',
+        'اساسنامه',
+        'دستورالعمل',
+    ];
+
+    foreach ( $no_prefix_starts as $p ) {
+        if ( mb_strpos($law_name, $p) === 0 ) {
+            return $law_name;
+        }
+    }
+
+    return 'قانون ' . $law_name;
 }
 
 /**
