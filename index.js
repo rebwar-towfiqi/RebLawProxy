@@ -231,3 +231,36 @@ app.post("/reblaw-ai", handleAsk);
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`RebLaw AI Proxy listening on port ${PORT}`);
 });
+const roleModelMap = {
+  judge: 'gpt-4',  // برای قاضی از مدل GPT-4 استفاده می‌شود
+  shadow_counsel: 'gpt-4-vision',  // برای وکیل سایه از مدل متفاوت استفاده می‌شود
+};
+
+function determineModel(role) {
+  return roleModelMap[role] || 'gpt-4'; // مدل پیش‌فرض برای بقیه موارد
+}
+
+async function handleAsk(req, res) {
+  const role = req.body.role; // نقش را از داده‌های ورودی بگیریم
+  const model = determineModel(role); // مدل را بر اساس نقش انتخاب کنیم
+
+  // ادامه کد با استفاده از مدل انتخابی...
+  const payload = {
+    model,
+    messages: req.body.messages,
+    temperature: 0.7,  // می‌توانید دمای مدل را برای هر نقش تغییر دهید
+    max_tokens: 150,
+  };
+
+  // ارسال درخواست به OpenAI
+  const response = await callOpenAI(payload);
+
+  if (!response.ok) {
+    return res.status(response.status).json({ error: response.raw });
+  }
+
+  return res.json({
+    success: true,
+    answer: response.content,  // پاسخ محتوای OpenAI را برگردانید
+  });
+}
