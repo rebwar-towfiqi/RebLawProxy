@@ -1,11 +1,11 @@
 {
   "name": "reblawproxy",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.1",
+  "description": "RebLaw AI Proxy (WordPress-safe) with compatible responses for multiple add-ons",
   "main": "index.js",
-"scripts": {
-  "start": "node index.js"
-},
+  "scripts": {
+    "start": "node index.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -16,3 +16,4 @@
     "node-fetch": "^2.7.0"
   }
 }
+
