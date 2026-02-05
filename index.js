@@ -1,55 +1,93 @@
+/**
+ * RebLaw AI Proxy
+ * Stable, production-ready version
+ * Compatible with Node.js 18+ (including v22)
+ */
+
 const express = require("express");
 const cors = require("cors");
-const fetch = require("node-fetch");
 
 const app = express();
+
+/* =========================
+   Basic middleware
+========================= */
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
-app.get("/", (req, res) => res.send("RebLaw AI Proxy is running."));
-app.get("/health", (req, res) => res.json({ ok: true }));
+/* =========================
+   Environment & constants
+========================= */
+const PORT = process.env.PORT || 3000;
+const DEFAULT_MODEL = "gpt-3.5-turbo";
 
-/**
- * If REBLAW_AI_PROXY_TOKEN is set, the proxy requires:
- *   Authorization: Bearer <token>
- *
- * (Matches the expected behavior of the HearingRoom add-on.)
- */
+/* =========================
+   Health & root
+========================= */
+app.get("/", (req, res) => {
+  res.send("RebLaw AI Proxy is running.");
+});
+
+app.get("/health", (req, res) => {
+  res.json({ ok: true });
+});
+
+/* =========================
+   Optional proxy auth
+   Header:
+   Authorization: Bearer <REBLAW_AI_PROXY_TOKEN>
+========================= */
 function checkAuth(req) {
   const required = (process.env.REBLAW_AI_PROXY_TOKEN || "").trim();
   if (!required) return { ok: true };
 
   const auth = (req.headers.authorization || "").trim();
-  if (!auth.startsWith("Bearer ")) return { ok: false, status: 401, error: "Missing Authorization" };
+  if (!auth.startsWith("Bearer ")) {
+    return { ok: false, status: 401, error: "Missing Authorization header" };
+  }
 
-  const tok = auth.slice("Bearer ".length).trim();
-  if (tok !== required) return { ok: false, status: 403, error: "Invalid token" };
+  const token = auth.slice("Bearer ".length).trim();
+  if (token !== required) {
+    return { ok: false, status: 403, error: "Invalid proxy token" };
+  }
 
   return { ok: true };
 }
 
-function normalizeIncoming(reqBody) {
-  const body = reqBody || {};
+/* =========================
+   Normalize incoming payload
+========================= */
+function normalizeIncoming(body) {
+  const reqBody = body || {};
 
-  // Preferred: OpenAI style {model, messages, temperature, ...}
-  if (Array.isArray(body.messages) && body.messages.length) {
+  // OpenAI-style payload
+  if (Array.isArray(reqBody.messages) && reqBody.messages.length) {
     return {
-      model: typeof body.model === "string" && body.model.trim() ? body.model.trim() : null,
-      messages: body.messages,
+      model:
+        typeof reqBody.model === "string" && reqBody.model.trim()
+          ? reqBody.model.trim()
+          : null,
+      messages: reqBody.messages,
       temperature:
-        typeof body.temperature === "number" ? body.temperature : null,
+        typeof reqBody.temperature === "number"
+          ? reqBody.temperature
+          : null,
       max_tokens:
-        typeof body.max_tokens === "number" ? body.max_tokens : null,
-      top_p: typeof body.top_p === "number" ? body.top_p : null,
+        typeof reqBody.max_tokens === "number" ? reqBody.max_tokens : null,
+      top_p: typeof reqBody.top_p === "number" ? reqBody.top_p : null,
       presence_penalty:
-        typeof body.presence_penalty === "number" ? body.presence_penalty : null,
+        typeof reqBody.presence_penalty === "number"
+          ? reqBody.presence_penalty
+          : null,
       frequency_penalty:
-        typeof body.frequency_penalty === "number" ? body.frequency_penalty : null,
+        typeof reqBody.frequency_penalty === "number"
+          ? reqBody.frequency_penalty
+          : null,
     };
   }
 
-  // Simple clients { question:"..." }
-  if (typeof body.question === "string" && body.question.trim()) {
+  // Simple clients: { question: "..." }
+  if (typeof reqBody.question === "string" && reqBody.question.trim()) {
     const systemPrompt = `You are RebLaw, a professional legal assistant.
 Always respond in the same language as the user (Persian/Farsi, Kurdish, or English).
 Be clear, structured, and practical.`;
@@ -63,7 +101,7 @@ Be clear, structured, and practical.`;
       frequency_penalty: null,
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: body.question.trim() },
+        { role: "user", content: reqBody.question.trim() },
       ],
     };
   }
@@ -71,8 +109,12 @@ Be clear, structured, and practical.`;
   return null;
 }
 
+/* =========================
+   Call OpenAI
+   (uses native fetch in Node 18+)
+========================= */
 async function callOpenAI(payload) {
-  const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -81,51 +123,72 @@ async function callOpenAI(payload) {
     body: JSON.stringify(payload),
   });
 
-  // IMPORTANT: some WAF/proxies return HTML with status 200; read as text first.
-  const raw = await resp.text();
+  const raw = await response.text();
 
   let json = null;
   try {
     json = JSON.parse(raw);
   } catch (_) {
-    // leave json null
+    // Non-JSON response (HTML, WAF, etc.)
   }
 
-  return { ok: resp.ok, status: resp.status, json, raw };
+  return {
+    ok: response.ok,
+    status: response.status,
+    json,
+    raw,
+  };
 }
 
+/* =========================
+   Extract AI content safely
+========================= */
 function extractContent(json) {
   if (!json || typeof json !== "object") return "";
-  // OpenAI format
-  const c = json?.choices?.[0]?.message?.content;
-  if (typeof c === "string" && c.trim()) return c.trim();
-  // Proxy-like formats
+
+  const c1 = json?.choices?.[0]?.message?.content;
+  if (typeof c1 === "string" && c1.trim()) return c1.trim();
+
   const c2 = json?.content;
   if (typeof c2 === "string" && c2.trim()) return c2.trim();
+
   const c3 = json?.answer;
   if (typeof c3 === "string" && c3.trim()) return c3.trim();
+
   return "";
 }
 
+/* =========================
+   Error helper
+========================= */
 function errJson(res, status, trace_id, message, extra = {}) {
   return res.status(status).json({
     ok: false,
-    error: message,
     trace_id,
+    error: message,
     ...extra,
   });
 }
 
-/**
- * Main handler:
- * - Accepts OpenAI-style payload (model/messages/temperature/...)
- * - Returns BOTH {answer} and {content} so different WordPress add-ons can parse it safely.
- */
+/* =========================
+   Main handler
+========================= */
 async function handleAsk(req, res) {
   const trace_id = Date.now().toString(36);
 
   const auth = checkAuth(req);
-  if (!auth.ok) return errJson(res, auth.status, trace_id, auth.error);
+  if (!auth.ok) {
+    return errJson(res, auth.status, trace_id, auth.error);
+  }
+
+  if (!process.env.OPENAI_API_KEY) {
+    return errJson(
+      res,
+      500,
+      trace_id,
+      "OPENAI_API_KEY is not set on the server"
+    );
+  }
 
   const normalized = normalizeIncoming(req.body);
   if (!normalized) {
@@ -133,19 +196,14 @@ async function handleAsk(req, res) {
       res,
       400,
       trace_id,
-      'Invalid payload. Send {messages:[...]} (preferred) or {question:"..."}'
+      'Invalid payload. Send {messages:[...]} or {question:"..."}'
     );
   }
 
-  if (!process.env.OPENAI_API_KEY) {
-    return errJson(res, 500, trace_id, "OPENAI_API_KEY is not set on the server.");
-  }
-
-  // Defaults (can be overridden per-request or by env)
   const model =
     normalized.model ||
     (process.env.OPENAI_MODEL && process.env.OPENAI_MODEL.trim()) ||
-    "'gpt-3.5-turbo'";
+    DEFAULT_MODEL;
 
   const payload = {
     model,
@@ -153,14 +211,18 @@ async function handleAsk(req, res) {
     temperature:
       normalized.temperature !== null
         ? normalized.temperature
-        : (process.env.OPENAI_TEMPERATURE ? Number(process.env.OPENAI_TEMPERATURE) : 0.2),
+        : process.env.OPENAI_TEMPERATURE
+        ? Number(process.env.OPENAI_TEMPERATURE)
+        : 0.2,
   };
 
-  // Only attach optional fields if provided
-  if (normalized.max_tokens !== null) payload.max_tokens = normalized.max_tokens;
+  if (normalized.max_tokens !== null)
+    payload.max_tokens = normalized.max_tokens;
   if (normalized.top_p !== null) payload.top_p = normalized.top_p;
-  if (normalized.presence_penalty !== null) payload.presence_penalty = normalized.presence_penalty;
-  if (normalized.frequency_penalty !== null) payload.frequency_penalty = normalized.frequency_penalty;
+  if (normalized.presence_penalty !== null)
+    payload.presence_penalty = normalized.presence_penalty;
+  if (normalized.frequency_penalty !== null)
+    payload.frequency_penalty = normalized.frequency_penalty;
 
   try {
     const { ok, status, json, raw } = await callOpenAI(payload);
@@ -174,39 +236,35 @@ async function handleAsk(req, res) {
 
     const content = extractContent(json);
     if (!content) {
-      // status is 200 but body is not the expected OpenAI JSON
-      return errJson(res, 502, trace_id, "Upstream returned no usable content", {
-        upstream_status: status,
-        hint:
-          "If you see HTML or a block page here, your server/network is interfering. Try a different region or keep using this proxy (Railway) as the stable path.",
+      return errJson(res, 502, trace_id, "No usable content from upstream", {
         raw_snippet: raw.slice(0, 800),
       });
     }
 
-    // Return both keys for maximum compatibility:
-    // - some clients expect {answer}
-    // - HearingRoom add-on expects {content} or OpenAI-like {choices...}
     return res.json({
       ok: true,
       trace_id,
-      data,
+      content,
+      answer: content,
     });
-
   } catch (e) {
     console.error("❌ Proxy crash:", e);
     return errJson(res, 500, trace_id, "Proxy server error");
   }
 }
 
-// Compatibility routes (existing + new aliases)
+/* =========================
+   Routes (compatibility)
+========================= */
 app.post("/ask", handleAsk);
 app.post("/api/ask", handleAsk);
 app.post("/v1/ask", handleAsk);
 app.post("/reblaw/ask", handleAsk);
-
-// HearingRoom recommended route (also works with same handler)
 app.post("/reblaw-ai", handleAsk);
 
+/* =========================
+   Start server
+========================= */
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`RebLaw AI Proxy listening on port ${PORT}`);
+  console.log(`🚀 RebLaw AI Proxy listening on port ${PORT}`);
 });
