@@ -537,7 +537,7 @@
               "elType": "widget",
               "widgetType": "shortcode",
               "settings": {
-                "shortcode": "[reblaw_ai]"
+                "shortcode": "[reblaw_legal_ai]"
               },
               "elements": [],
               "isInner": false
