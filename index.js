@@ -83,6 +83,10 @@ function normalizeIncoming(body) {
         typeof reqBody.frequency_penalty === "number"
           ? reqBody.frequency_penalty
           : null,
+      response_format:
+        reqBody.response_format && typeof reqBody.response_format === "object"
+          ? reqBody.response_format
+          : null,
     };
   }
 
@@ -98,6 +102,7 @@ Be clear, structured, and practical.`;
       max_tokens: null,
       top_p: null,
       presence_penalty: null,
+      response_format: null,
       frequency_penalty: null,
       messages: [
         { role: "system", content: systemPrompt },
@@ -163,6 +168,7 @@ function extractContent(json) {
 ========================= */
 function errJson(res, status, trace_id, message, extra = {}) {
   return res.status(status).json({
+    success: false,
     ok: false,
     trace_id,
     error: message,
@@ -224,6 +230,10 @@ async function handleAsk(req, res) {
   if (normalized.frequency_penalty !== null)
     payload.frequency_penalty = normalized.frequency_penalty;
 
+  if (normalized.response_format !== null) {
+    payload.response_format = normalized.response_format;
+  }
+
   try {
     const { ok, status, json, raw } = await callOpenAI(payload);
 
@@ -242,6 +252,7 @@ async function handleAsk(req, res) {
     }
 
     return res.json({
+      success: true,
       ok: true,
       trace_id,
       content,
