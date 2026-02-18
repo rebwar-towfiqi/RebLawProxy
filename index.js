@@ -19,7 +19,7 @@ app.use(express.json({ limit: "1mb" }));
    Environment & constants
 ========================= */
 const PORT = process.env.PORT || 3000;
-const DEFAULT_MODEL = "gpt-3.5-turbo";
+const DEFAULT_MODEL = "gpt-4.1-mini";
 
 /* =========================
    Health & root
