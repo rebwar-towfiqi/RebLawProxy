@@ -27,7 +27,7 @@ app.post("/ask", async (req, res) => {
         "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4.1-mini",
  // در صورت نیاز می‌توانیم مدل را عوض کنیم
         messages: [
           {
